@@ -1,1 +1,27 @@
-node_modules
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+
+# Certificate private keys (never commit these)
+certs/**/private.key
+
+# Optional: Exclude all certs (if certs are local dev only and shouldn't be tracked)
+# certs/
+
+# Logs
+*.log
+logs/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# IDE/editor folders
+.vscode/
+.idea/
+
+# Build artifacts (if any)
+dist/
+build/

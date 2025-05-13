@@ -1,0 +1,25 @@
+Step 2: Generate Party A's keys
+# Generate private key
+openssl genrsa -out certs/partyA/private.key 2048
+
+# Generate public certificate
+openssl req -new -x509 -key certs/partyA/private.key -out certs/partyA/public.crt -days 365 \
+  -subj "/C=IN/ST=Maharashtra/L=Mumbai/O=PartyA/OU=IT/CN=partyA.com"
+
+# Generate PEM from public cert
+openssl x509 -in certs/partyA/public.crt -outform PEM -out certs/partyA/public.pem
+
+
+🔐 Step 3: Generate Party B's keys
+# Generate private key
+openssl genrsa -out certs/partyB/private.key 2048
+
+# Generate public certificate
+openssl req -new -x509 -key certs/partyB/private.key -out certs/partyB/public.crt -days 365 \
+  -subj "/C=IN/ST=Maharashtra/L=Pune/O=PartyB/OU=Ops/CN=partyB.com"
+
+# Generate PEM from public cert
+openssl x509 -in certs/partyB/public.crt -outform PEM -out certs/partyB/public.pem
+
+To do list 
+1. Create separate encryption logic for both party a and b 
