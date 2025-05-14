@@ -1,5 +1,3 @@
-// src/core/composeMessage.js
-
 import { AS2Composer } from 'libas2';
 import { loadKeys } from '../crypto/loadKeys.js';
 import { AS2_PARTY_A, AS2_PARTY_B } from '../config/env.js';
@@ -13,6 +11,14 @@ export const composeMessage = async () => {
         // Log the keys and data for debugging
         console.log('Party A Keys:', partyAKeys);
         console.log('Party B Keys:', partyBKeys);
+
+        // Ensure keys are loaded correctly
+        if (!partyAKeys || !partyAKeys.privateKey || !partyAKeys.publicCert) {
+            throw new Error('Party A keys are not loaded properly');
+        }
+        if (!partyBKeys || !partyBKeys.publicCert) {
+            throw new Error('Party B keys are not loaded properly');
+        }
 
         // Define message data
         const message = 'Your AS2 message content here';
@@ -28,25 +34,42 @@ export const composeMessage = async () => {
         console.log('Message ID:', messageId);
         console.log('Headers:', headers);
 
-        // Create a new AS2Composer instance
-        const composer = new AS2Composer();
+        // Create the agreement object
+        const agreement = {
+            host: {
+                id: 'partyA',
+                certificate: partyAKeys.publicCert,
+                privateKey: partyAKeys.privateKey,
+                sign: 'sha256', // or any appropriate signing algorithm
+            },
+            partner: {
+                id: 'partyB',
+                certificate: partyBKeys.publicCert,
+                encrypt: 'aes256', // encryption algorithm, adjust as needed
+            },
+        };
 
-        // Compose the AS2 message
-        const { encryptedMessage, headers: composedHeaders } = await composer.composeMessage({
-            message,
-            messageId,
-            headers,
-            signPrivateKey: partyAKeys.privateKey,
-            signCert: partyAKeys.publicCert,
-            encryptCert: partyBKeys.publicCert,
+        // Create a new AS2Composer instance
+        const composer = new AS2Composer({
+            message: {
+                content: message, // AS2 message content
+                messageId: messageId,
+                headers: headers,
+            },
+            agreement: agreement,
+            additionalHeaders: [] // You can add any extra headers here
         });
 
-        // Log the results
-        console.log('Composed AS2 Message:', encryptedMessage);
-        console.log('Headers:', composedHeaders);
+        // Compile the AS2 message
+        const compiledMessage = await composer.compile();
 
-        return { encryptedMessage, composedHeaders };
+        // Log the results
+        console.log('Composed AS2 Message:', compiledMessage);
+        console.log('Headers:', compiledMessage.getHeaders());
+
+        return { compiledMessage, headers: compiledMessage.getHeaders() };
     } catch (error) {
         console.error('Error composing AS2 message:', error);
+        throw error;  // Ensure the error propagates correctly
     }
 };
